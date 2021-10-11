@@ -87,7 +87,7 @@ for g in genres:
                               image_url = og_image["content"].split("!")[0] # ignore the !Large.jpg at the end
                               print(image_url)
 
-                              save_path = file_path + "/" + artist_name + "_" + str(image_count) + ".jpg"
+                              save_path = f'{file_path}/{artist_name}_{str(image_count)}.jpg'
 
                               #download the file
                               try:
