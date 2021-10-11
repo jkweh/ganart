@@ -9,9 +9,9 @@ base_url = "https://www.wikiart.org"
 genres = ['pop-art', 'minimalism', 'contemporary', 'kitsch']
 
 # iterate through all artists by last name alphabetically
-for g in genre:
+for g in genres:
   for c in range(ord('a'), ord('z')+1):
-      artist_list_url = f('{base_url}/en/artists-by-art-movement/{chr(c)}/text-list')
+      artist_list_url = f('{base_url}/en/artists-by-art-movement/{g}/text-list')
 
       genre_soup = BeautifulSoup(urllib.request.urlopen(artist_list_url), "lxml")
       artist_list_main = genre_soup.find("main")
