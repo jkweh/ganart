@@ -76,7 +76,7 @@ for g in genre:
                           continue
 
                       # check the copyright
-                      if "Public domain" in painting_soup.text:
+                      if "public domain" in painting_soup.text.lower():
 
                           #check the genre
                           genre = painting_soup.find("span", {"itemprop":"genre"})
