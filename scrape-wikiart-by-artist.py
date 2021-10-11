@@ -28,21 +28,22 @@ for c in range(ord('a'), ord('z')+1):
                     born = int(re.sub("[^0-9]", "",parts[0]))
                     died = int(re.sub("[^0-9]", "",parts[1]))
 
-        # look for artists who may have created work that could in public domain
+        # look for artists who may have created work that could be in public domain
         if born>1850 and died>0 and (born<1900 or died<1950):
             link = li.find("a")
             artist = link.attrs["href"]
 
-            if artist == "/en/salvador-dali": # skip Dali
-                continue
+#             if artist == "/en/salvador-dali": # skip Dali
+#                 continue
 
             # get the artist's main page
             artist_url = base_url + artist
             artist_soup = BeautifulSoup(urllib.request.urlopen(artist_url), "lxml")
 
+            page_body = artist_soup.text.lower()
+            styles = ['minimalism', 'pop art', 'contemporary']
             # only look for artists with the word abstract on their main page
-            if "Abstract" in artist_soup.text or "abstract" in artist_soup.text or "Avant-garde" \
-                in artist_soup.text or "avant-garde" in artist_soup.text:
+            if any(e in page_body for e in styles):
                 print(artist + " " + str(born) + " - " + str(died))
 
                 # get the artist's web page for the artwork
