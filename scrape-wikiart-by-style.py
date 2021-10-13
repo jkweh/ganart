@@ -35,7 +35,7 @@ def scrape_style(style: str):
             #     continue
             # get the artist's main page
             artist_soup = BeautifulSoup(make_request(f"{base_url}{artist}"), "lxml")
-            print(f"{artist}:{str(born)}-{str(died)}")
+            print(f"{style}:{artist}:{str(born)}-{str(died)}")
             artist_work_soup = BeautifulSoup(
                 make_request(f"{base_url}{artist}/all-works/text-list"),  # get the artist's web page for the artwork
                 "lxml",
