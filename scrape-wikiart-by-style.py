@@ -5,7 +5,7 @@ import requests
 
 file_path = "art/wikiart"
 base_url = "https://www.wikiart.org"
-styles = ["pop-art", "minimalism", "contemporary", "kitsch"]
+styles = ["pop-art", "minimalism", "contemporary"]
 
 
 def make_request(url: str):
@@ -29,15 +29,12 @@ def scrape_style(style: str):
                     died = int(re.sub("[^0-9]", "", parts[1]))
 
         # look for artists who may have created work that could be in public domain
-        if 0 < died < 1950:
-            artist = li.find("a").attrs["href"]
-
+        artist = li.find("a").attrs["href"]
+        if 0 < died:
             # if artist == "/en/salvador-dali": # skip Dali
             #     continue
-
             # get the artist's main page
             artist_soup = BeautifulSoup(make_request(f"{base_url}{artist}"), "lxml")
-            # page_body = artist_soup.text.lower()
             print(f"{artist}:{str(born)}-{str(died)}")
             artist_work_soup = BeautifulSoup(
                 make_request(f"{base_url}{artist}/all-works/text-list"),  # get the artist's web page for the artwork
@@ -58,9 +55,9 @@ def scrape_style(style: str):
                     # print("error retreiving painting page")
                     continue
 
-                if "public domain" not in painting_soup.text.lower():  # check the copyright
-                    # print("wasn't in public domain")
-                    continue
+                # if "public domain" not in painting_soup.text.lower():  # check the copyright
+                #     # print("wasn't in public domain")
+                #     continue
 
                 style_matched = False
                 for a in painting_soup.article.find_all("a"):
@@ -77,6 +74,7 @@ def scrape_style(style: str):
                                 print(f"failed to download {image_url}", e)
                     if style_matched:
                         break
+    print(f"done scraping {style}")
 
 
 if __name__ == "__main__":
