@@ -1,3 +1,6 @@
 lxml
 requests
 bs4
+imgaug
+numpy
+pillow
