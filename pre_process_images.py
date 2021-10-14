@@ -25,6 +25,8 @@ seq = iaa.Sequential(
 # loop through the images, resizing and augmenting
 path, dirs, files = next(os.walk(raw_path))
 for file in sorted(files):
+    if not file.endswith(tuple([".jpeg", ".jpg"])):
+        continue
     print(file)
     image = Image.open(path + "/" + file)
     if image.mode == "RGB":
