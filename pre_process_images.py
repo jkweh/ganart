@@ -10,15 +10,19 @@ from common import raw_path, resized_path
 
 
 def delete_bad_images(bad_images: list):
+    print("The following images had errors")
+    for i in bad_images:
+        print(f"{raw_path}/{i}")
     while True:
-        yes_no = str(input("The following images had errors, would you like to delete them? "))
+        yes_no = str(input("Would you like to delete them? "))
         if not yes_no or yes_no.lower() not in ["yes", "no"]:
             print("just give a yes or no answer!")
             continue
         elif yes_no == "yes":
             for i in bad_images:
-                print(f"deleting {i}")
-                os.remove(i)
+                print(f"deleting {raw_path}/{i}")
+                os.remove(f"{raw_path}/{i}")
+        break
 
 
 if __name__ == "__main__":
