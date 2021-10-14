@@ -1,10 +1,12 @@
+#!/usr/bin/env python3
+
 from bs4 import BeautifulSoup
 from concurrent.futures import as_completed, ThreadPoolExecutor
 import re
 import requests
 
-file_path = "art/wikiart"
-base_url = "https://www.wikiart.org"
+from common import base_url, raw_path
+
 styles = ["pop-art", "minimalism", "contemporary"]
 
 
@@ -66,7 +68,7 @@ def scrape_style(style: str):
                             style_matched = True
                             # ignore the !Large.jpg at the end
                             image_url = painting_soup.find("meta", {"property": "og:image"})["content"].split("!")[0]
-                            save_path = f"{file_path}/{artist_name}_{str(i)}.jpg"
+                            save_path = f"{raw_path}/{artist_name}_{str(i)}.jpg"
                             try:  # download the file
                                 print(f"downloading {image_url} to {save_path}")
                                 open(save_path, "wb").write(make_request(image_url))

@@ -1,12 +1,12 @@
+#!/usr/bin/env python3
 import os
-from PIL import Image
-import numpy as np
+
 import imgaug as ia
 from imgaug import augmenters as iaa
+import numpy as np
+from PIL import Image
 
-# set up the file paths
-from_path = "art/raw/"
-to_path = "art/resized/"
+from common import raw_path, resized_path
 
 # set up some parameters
 size = 1024
@@ -23,17 +23,17 @@ seq = iaa.Sequential(
 )
 
 # loop through the images, resizing and augmenting
-path, dirs, files = next(os.walk(from_path))
+path, dirs, files = next(os.walk(raw_path))
 for file in sorted(files):
     print(file)
     image = Image.open(path + "/" + file)
     if image.mode == "RGB":
-        image.save(to_path + "/" + file)
+        image.save(resized_path + "/" + file)
         image_resized = image.resize((size, size), resample=Image.BILINEAR)
         image_np = np.array(image_resized)
         images = [image_np] * num_augmentations
         images_aug = seq(images=images)
         for i in range(0, num_augmentations):
             im = Image.fromarray(np.uint8(images_aug[i]))
-            to_file = to_path + "/" + file[:-4] + "_" + str(i).zfill(2) + ".jpg"
+            to_file = resized_path + "/" + file[:-4] + "_" + str(i).zfill(2) + ".jpg"
             im.save(to_file)  # , quality=95)

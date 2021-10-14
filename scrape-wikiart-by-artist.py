@@ -1,53 +1,54 @@
+#!/usr/bin/env python3
+
 import urllib
 import re
 from bs4 import BeautifulSoup
 import time
 
-file_path = "art/wikiart"
-base_url = "https://www.wikiart.org"
+from common import base_url, raw_path
 
 # iterate through all artists by last name alphabetically
-for c in range(ord('a'), ord('z')+1):
+for c in range(ord("a"), ord("z") + 1):
     char = chr(c)
-    artist_list_url = base_url + '/en/Alphabet/' + char + '/text-list'
+    artist_list_url = base_url + "/en/Alphabet/" + char + "/text-list"
 
     genre_soup = BeautifulSoup(urllib.request.urlopen(artist_list_url), "lxml")
     artist_list_main = genre_soup.find("main")
     lis = artist_list_main.find_all("li")
 
     # for each list element
-    for li in lis: 
+    for li in lis:
         born = 0
         died = 0
 
         # get the date range
         for line in li.text.splitlines():
             if line.startswith(",") and "-" in line:
-                parts = line.split('-')
+                parts = line.split("-")
                 if len(parts) == 2:
-                    born = int(re.sub("[^0-9]", "",parts[0]))
-                    died = int(re.sub("[^0-9]", "",parts[1]))
+                    born = int(re.sub("[^0-9]", "", parts[0]))
+                    died = int(re.sub("[^0-9]", "", parts[1]))
 
         # look for artists who may have created work that could be in public domain
-        if born>1850 and died>0 and (born<1900 or died<1950):
+        if born > 1850 and died > 0 and (born < 1900 or died < 1950):
             link = li.find("a")
             artist = link.attrs["href"]
 
-#             if artist == "/en/salvador-dali": # skip Dali
-#                 continue
+            #             if artist == "/en/salvador-dali": # skip Dali
+            #                 continue
 
             # get the artist's main page
             artist_url = base_url + artist
             artist_soup = BeautifulSoup(urllib.request.urlopen(artist_url), "lxml")
 
             page_body = artist_soup.text.lower()
-            styles = ['minimalism', 'pop art', 'contemporary']
+            styles = ["minimalism", "pop art", "contemporary"]
             # only look for artists with the word abstract on their main page
             if any(e in page_body for e in styles):
                 print(artist + " " + str(born) + " - " + str(died))
 
                 # get the artist's web page for the artwork
-                url = base_url + artist + '/all-works/text-list'
+                url = base_url + artist + "/all-works/text-list"
                 artist_work_soup = BeautifulSoup(urllib.request.urlopen(url), "lxml")
 
                 # get the main section
@@ -79,22 +80,22 @@ for c in range(ord('a'), ord('z')+1):
                         # check the copyright
                         if "Public domain" in painting_soup.text:
 
-                            #check the genre
-                            genre = painting_soup.find("span", {"itemprop":"genre"})
+                            # check the genre
+                            genre = painting_soup.find("span", {"itemprop": "genre"})
                             if genre != None and genre.text == "abstract":
 
                                 # get the url
-                                og_image = painting_soup.find("meta", {"property":"og:image"})
-                                image_url = og_image["content"].split("!")[0] # ignore the !Large.jpg at the end
+                                og_image = painting_soup.find("meta", {"property": "og:image"})
+                                image_url = og_image["content"].split("!")[0]  # ignore the !Large.jpg at the end
                                 print(image_url)
 
-                                save_path = file_path + "/" + artist_name + "_" + str(image_count) + ".jpg"
+                                save_path = raw_path + "/" + artist_name + "_" + str(image_count) + ".jpg"
 
-                                #download the file
+                                # download the file
                                 try:
                                     print("downloading to " + save_path)
-                                    time.sleep(0.2)  # try not to get a 403                    
+                                    time.sleep(0.2)  # try not to get a 403
                                     urllib.request.urlretrieve(image_url, save_path)
                                     image_count = image_count + 1
                                 except Exception as e:
-                                    print("failed downloading " + image_url, e) 
+                                    print("failed downloading " + image_url, e)
