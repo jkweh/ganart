@@ -5,14 +5,14 @@ import numpy as np
 from PIL import Image
 from ISR.models import RDN, RRDN
 
+model = RRDN(weights="gans")  # Load the GAN model that will perform a 4x resize
+
 path = argv[1]
 if not os.path.isdir(path):
     raise RuntimeError("Given path does not exist")
 
-# Import the image
 for f in os.listdir(path):
     img = Image.open(f"{path}/{f}")
-    model = RRDN(weights="gans")  # Load the GAN model that will perform a 4x resize
     npimg = np.array(img)  # Convert to numpy image
 
     add_noise = False
