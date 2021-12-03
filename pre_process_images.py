@@ -10,13 +10,14 @@ from PIL import Image, UnidentifiedImageError
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Pre-process images for GAN training")
-    parser.add_argument("source", type=str, nargs="+", help="Absolute path to the source (raw-downloaded) images")
+    parser.add_argument("indir", type=str, nargs="+", help="Absolute path to the source (raw-downloaded) images")
     parser.add_argument(
         "outdir", type=str, nargs="+", help="Absolute path where the pre-processed files should be stored"
     )
+    parser.add_argument("project", type=str, nargs="+", help="Name of the project")
     args = parser.parse_args()
 
-    if not os.path.isdir(args.source):
+    if not os.path.isdir(args.indir):
         raise RuntimeError("source path does not exist")
     if not os.path.isdir(args.outdir):
         raise RuntimeError("outdir does not exist")
@@ -41,6 +42,10 @@ def delete_bad_images(bad_images: list):
 if __name__ == "__main__":
     args = parse_args()
 
+    outdir = os.path.join(args.outdir, args.project, "preprocessed")
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
+
     # Set up some parameters.
     size = 1024
     num_augmentations = 6
@@ -58,13 +63,13 @@ if __name__ == "__main__":
 
     bad_images = []
     # loop through the images, resizing and augmenting.
-    path, dirs, files = next(os.walk(args.source))
+    path, dirs, files = next(os.walk(args.indir))
     for file in sorted(files):
         if not file.endswith(tuple([".jpeg", ".jpg"])):
             continue
 
         infile = os.path.join(path, file)
-        outfile = os.path.join(args.outdir, file)
+        outfile = os.path.join(outdir, file)
         print(infile)
 
         try:
@@ -81,7 +86,7 @@ if __name__ == "__main__":
 
         for i, img in enumerate(augmented_images):
             Image.fromarray(np.uint8(img)).save(
-                args.outdir + file[:-4] + "_" + str(i).zfill(2) + ".jpg",
+                outdir + file[:-4] + "_" + str(i).zfill(2) + ".jpg",
                 quality=95,
             )
     if bad_images:

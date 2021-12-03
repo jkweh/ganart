@@ -7,7 +7,7 @@ import numpy as np
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Pre-process images for GAN training")
+    parser = argparse.ArgumentParser(description="Post-process GAN-generated images")
     parser.add_argument("indir", type=str, nargs="+", help="Absolute path to the source images")
     args = parser.parse_args()
 
