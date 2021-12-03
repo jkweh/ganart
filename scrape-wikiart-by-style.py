@@ -5,9 +5,18 @@ from concurrent.futures import as_completed, ThreadPoolExecutor
 import re
 import requests
 
-from common import base_url, raw_path
 
+base_url = "https://www.wikiart.org"
 styles = ["pop-art", "minimalism", "contemporary"]
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Pre-process images for GAN training")
+    parser.add_argument("outdir", type=str, nargs="+", help="Absolute path where downloaded files should be stored")
+    args = parser.parse_args()
+
+    if not os.path.isdir(args.indir):
+        raise RuntimeError("source path does not exist")
 
 
 def make_request(url: str):
@@ -17,6 +26,8 @@ def make_request(url: str):
 
 
 def scrape_style(style: str):
+    args = parse_args()
+
     print(f"starting scrape of {style}")
     artist_list_url = f"{base_url}/en/artists-by-art-movement/{style}/text-list"
     style_soup = BeautifulSoup(make_request(artist_list_url), "lxml")
@@ -68,7 +79,7 @@ def scrape_style(style: str):
                             style_matched = True
                             # ignore the !Large.jpg at the end
                             image_url = painting_soup.find("meta", {"property": "og:image"})["content"].split("!")[0]
-                            save_path = f"{raw_path}/{artist_name}_{str(i)}.jpg"
+                            save_path = f"{args.outdir}/{artist_name}_{str(i)}.jpg"
                             try:  # download the file
                                 print(f"downloading {image_url} to {save_path}")
                                 open(save_path, "wb").write(make_request(image_url))

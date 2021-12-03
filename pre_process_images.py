@@ -1,36 +1,52 @@
 #!/usr/bin/env python3
 import os
 
+import argparse
 import imgaug as ia
 from imgaug import augmenters as iaa
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 
-from common import raw_path, resized_path
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Pre-process images for GAN training")
+    parser.add_argument("source", type=str, nargs="+", help="Absolute path to the source (raw-downloaded) images")
+    parser.add_argument(
+        "outdir", type=str, nargs="+", help="Absolute path where the pre-processed files should be stored"
+    )
+    args = parser.parse_args()
+
+    if not os.path.isdir(args.source):
+        raise RuntimeError("source path does not exist")
+    if not os.path.isdir(args.outdir):
+        raise RuntimeError("outdir does not exist")
 
 
 def delete_bad_images(bad_images: list):
     print("The following images had errors")
-    for i in bad_images:
-        print(f"{raw_path}/{i}")
+    for path in bad_images:
+        print(path)
     while True:
         yes_no = str(input("Would you like to delete them? "))
         if not yes_no or yes_no.lower() not in ["yes", "no"]:
-            print("just give a yes or no answer!")
+            print("com'on man, just give a yes or no answer!")
             continue
         elif yes_no == "yes":
-            for i in bad_images:
-                print(f"deleting {raw_path}/{i}")
-                os.remove(f"{raw_path}/{i}")
+            for path in bad_images:
+                print(f"deleting {path}")
+                os.remove(f"{path}")
         break
 
 
 if __name__ == "__main__":
-    # set up some parameters
+    args = parse_args()
+
+    # Set up some parameters.
     size = 1024
     num_augmentations = 6
 
-    # set up the image augmenter
+    # Set up the image augmenter. This will return a series of images that have been augmented in various ways, such
+    # as flipped, perspective-shifted, color-shifted, etc.
     seq = iaa.Sequential(
         [
             iaa.Rot90((0, 3)),
@@ -41,26 +57,32 @@ if __name__ == "__main__":
     )
 
     bad_images = []
-    # loop through the images, resizing and augmenting
-    path, dirs, files = next(os.walk(raw_path))
+    # loop through the images, resizing and augmenting.
+    path, dirs, files = next(os.walk(args.source))
     for file in sorted(files):
         if not file.endswith(tuple([".jpeg", ".jpg"])):
             continue
-        print(file)
-        try:
-            image = Image.open(path + "/" + file)
-        except UnidentifiedImageError as e:
-            bad_images.append(file)
 
-        if image.mode == "RGB":
-            image.save(resized_path + "/" + file)
-            image_resized = image.resize((size, size), resample=Image.BILINEAR)
-            image_np = np.array(image_resized)
-            images = [image_np] * num_augmentations
-            images_aug = seq(images=images)
-            for i in range(0, num_augmentations):
-                im = Image.fromarray(np.uint8(images_aug[i]))
-                to_file = resized_path + "/" + file[:-4] + "_" + str(i).zfill(2) + ".jpg"
-                im.save(to_file)  # , quality=95)
+        infile = os.path.join(path, file)
+        outfile = os.path.join(args.outdir, file)
+        print(infile)
+
+        try:
+            image = Image.open(infile)
+        except UnidentifiedImageError as e:
+            bad_images.append(infile)
+            continue
+        if image.mode != "RGB":
+            bad_images.append(infile)
+            continue
+
+        image_resized = image.resize((size, size), resample=Image.BILINEAR)
+        augmented_images = seq(images=([np.array(image_resized)] * num_augmentations))
+
+        for i, img in enumerate(augmented_images):
+            Image.fromarray(np.uint8(img)).save(
+                args.outdir + file[:-4] + "_" + str(i).zfill(2) + ".jpg",
+                quality=95,
+            )
     if bad_images:
         delete_bad_images(bad_images)
